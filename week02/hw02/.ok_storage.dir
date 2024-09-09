@@ -1,0 +1,3 @@
+'count_until_larger-correct', (0, 70)
+'filter_sequence-correct', (512, 70)
+'hailstone-correct', (1024, 70)
