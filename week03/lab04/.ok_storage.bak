@@ -1,0 +1,6 @@
+'Dictionaries-correct', (0, 70)
+'flatten-correct', (512, 70)
+'merge-correct', (1024, 70)
+'size_of_tree-correct', (1536, 70)
+'replace_loki_at_leaf-correct', (2048, 70)
+'divide-correct', (2560, 70)
