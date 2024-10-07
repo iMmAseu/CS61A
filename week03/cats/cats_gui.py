@@ -55,7 +55,7 @@ def autocorrect(word=""):
     candidates = [w for w, s in LETTER_SETS if similar(s, letters, SIMILARITY_LIMIT)]
 
     # Try various diff functions until one doesn't raise an exception.
-    for fn in [cats.final_diff, cats.minimum_mewtations, cats.feline_fixes]:
+    for fn in [cats.final_diff, cats.minimum_mewtations, cats.furry_fixes]:
         try:
             guess = cats.autocorrect(word, candidates, fn, SIMILARITY_LIMIT)
             return reformat(guess, raw_word)
@@ -82,7 +82,7 @@ def reformat(word, raw_word):
     # add wrapping punctuation to the word
     if raw_word != word:
         word = raw_word[:first] + word
-        word = word + raw_word[last + 1:]
+        word = word + raw_word[last + 1 :]
 
     return word
 

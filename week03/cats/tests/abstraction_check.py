@@ -52,8 +52,8 @@ class Abstract:
         return id(self)
 
 class Match(Abstract):
-    def __init__(self, words, times_per_player):
-        self.a, self.b = words, times_per_player
+    def __init__(self, words, timestamps_per_player):
+        self.a, self.b = words, timestamps_per_player
     def __repr__(self):
         return '<Match {} {}>'.format(self.a, self.b)
 
@@ -61,19 +61,19 @@ match = Match
 get_word = lambda u, v: u.a[v]
 get_all_words = lambda u: u.a
 get_all_times = lambda u: u.b
-time = lambda u, v, w: u.b[v][w]
+get_time = lambda u, v, w: u.b[v][w]
 
 old = {}
 
 def swap_implementations(impl):
     # save other implementations
-    old['match'] = impl.match, impl.get_word, impl.get_all_words, impl.get_all_times, impl.time
+    old['match'] = impl.match, impl.get_word, impl.get_all_words, impl.get_all_times, impl.get_time
 
     # save our implementations
-    new_match = match, get_word, get_all_words, get_all_times, time
+    new_match = match, get_word, get_all_words, get_all_times, get_time
 
     # replace impl's implementations with ours
-    impl.match, impl.get_word, impl.get_all_words, impl.get_all_times, impl.time = match, get_word, get_all_words, get_all_times, time
+    impl.match, impl.get_word, impl.get_all_words, impl.get_all_times, impl.get_time = match, get_word, get_all_words, get_all_times, get_time
 
 def restore_implementations(impl):
-    impl.match, impl.get_word, impl.get_all_words, impl.get_all_times, impl.time = old['match']
+    impl.match, impl.get_word, impl.get_all_words, impl.get_all_times, impl.get_time = old['match']
