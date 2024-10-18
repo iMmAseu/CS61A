@@ -1,0 +1,6 @@
+'Iterators-correct', (0, 70)
+'count_occurrences-correct', (512, 70)
+'hailstone-correct', (1024, 70)
+'merge-correct', (1536, 70)
+'deep_map-correct', (2048, 70)
+'buy-correct', (2560, 70)

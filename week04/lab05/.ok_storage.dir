@@ -1,0 +1,7 @@
+'List Mutation-correct', (0, 70)
+'Dictionaries WWPD-correct', (512, 70)
+'partial_reverse-correct', (1024, 70)
+'group_by-correct', (1536, 70)
+'distance-correct', (2048, 70)
+'closer_city-correct', (2560, 70)
+'check_city_abstraction-correct', (3072, 70)
