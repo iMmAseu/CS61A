@@ -113,6 +113,7 @@ def deep_map(f, s):
         else:
             s[i] = f(s[i])
 
+
 def buy(required_fruits, prices, total_amount):
     """Print ways to buy some of each fruit so that the sum of prices is amount.
 
