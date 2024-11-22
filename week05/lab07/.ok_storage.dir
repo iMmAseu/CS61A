@@ -1,0 +1,7 @@
+'Inheritance ABCs-correct', (0, 70)
+'Account-correct', (512, 70)
+'FreeChecking-correct', (1024, 70)
+'BankAccount-correct', (1536, 70)
+'Client-correct', (2048, 70)
+'make_change-correct', (2560, 70)
+'ChangeMachine-correct', (3072, 70)

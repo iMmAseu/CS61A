@@ -8,14 +8,16 @@ def hailstone(n):
     >>> next(hail_gen)
     1
     """
-    yield n
     if n == 1:
-        yield from hailstone(n)
+        while True:
+            yield 1
     else:
-        if n % 2 == 0:
-            yield from hailstone(int(n/2))
-        else:
-            yield from hailstone(int(n*3+1))
+        yield int(n)
+
+    if n % 2 == 0:
+        yield from hailstone(n / 2)
+    else:
+        yield from hailstone((n * 3) + 1)
 
 
 def merge(a, b):
@@ -30,21 +32,21 @@ def merge(a, b):
     >>> [next(result) for _ in range(10)]
     [2, 3, 5, 7, 8, 9, 11, 13, 14, 15]
     """
-    next_a = next(a)
-    next_b = next(b)
-    while(True):
-        if (next_a < next_b):
-            yield next_a
-            next_a = next(a)
-        elif (next_a == next_b):
-            yield next_a
-            next_a = next(a)
-            next_b = next(b)
+    a_val, b_val = next(a), next(b)
+    while True:
+        if a_val == b_val:
+            yield a_val
+            a_val, b_val = next(a), next(b)
+        elif a_val < b_val:
+            yield a_val
+            a_val = next(a)
         else:
-            yield next_b
-            next_b = next(b)
+            yield b_val
+            b_val = next(b)
 
 
+
+# 注意这个题
 def perms(seq):
     """Q3: Generates all permutations of the given sequence. Each permutation is a
     list of the elements in SEQ in a different order. The permutations may be
@@ -58,8 +60,10 @@ def perms(seq):
     >>> try: # Prints "No more permutations!" if calling next would cause an error
     ...     next(p)
     ... except StopIteration:
-    ...     return 'No more permutations!')
+    ...     print('No more permutations!')
     No more permutations!
+    >>> sorted(perms([1, 2]))
+    [[1, 2], [2, 1]]
     >>> sorted(perms([1, 2, 3])) # Returns a sorted list containing elements of the generator
     [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
     >>> sorted(perms((10, 20, 30)))
@@ -68,17 +72,19 @@ def perms(seq):
     [['a', 'b'], ['b', 'a']]
     """
     if not seq:
-            yield []
+        yield []
     else:
-        for p in perms(seq[1:]):
+        for element in perms(seq[1:]):
             for i in range(len(seq)):
-                yield p[:i] + [seq[0]] + p[i:]
+                yield element[:i] + [seq[0]] + element[i:]
                 
 
 def yield_paths(t, value):
     """Q4: Yields all possible paths from the root of t to a node with the label
     value as a list.
-
+    >>> t0 = tree(1, [])
+    >>> next(yield_paths(t0, 1))
+    [1]
     >>> t1 = tree(1, [tree(2, [tree(3), tree(4, [tree(6)]), tree(5)]), tree(5)])
     >>> print_tree(t1)
     1
@@ -110,11 +116,10 @@ def yield_paths(t, value):
     [[0, 2], [0, 2, 1, 2]]
     """
     if label(t) == value:
-        yield [label(t)]
+        yield [value]
     for b in branches(t):
-        for i in yield_paths(b, value):
-            yield [label(t)] + i
-
+        for sub_b in yield_paths(b, value):
+            yield [label(t)] + sub_b
 
 class Minty:
     """A mint creates coins by stamping on years. The update method sets the mint's stamp to Minty.present_year.
