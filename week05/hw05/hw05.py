@@ -13,11 +13,14 @@ def make_test_random():
     0.0
     """
     rands = [x / 10 for x in range(10)]
+
     def random():
         rand = rands[0]
         rands.append(rands.pop(0))
         return rand
+
     return random
+
 
 ### Phase 1: The Player Class
 class Player:
@@ -59,29 +62,26 @@ class Player:
     >>> p2.popularity
     0
     """
+
     def __init__(self, name, random_func):
         self.name = name
         self.votes = 0
         self.popularity = 100
-        self.random_func = random_func
+        self.rand = random_func
 
     def debate(self, other):
-        rand_num = self.random_func()
+        """*** YOUR CODE HERE ***"""
         prob = max(0.1, self.popularity / (self.popularity + other.popularity))
-        if rand_num < prob:
+        if self.rand() < prob:
             self.popularity += 50
         else:
-            self.popularity -= 50
-        if self.popularity < 0:
-            self.popularity = 0
-
+            self.popularity = max(0, self.popularity - 50)
 
     def speech(self, other):
+        """*** YOUR CODE HERE ***"""
         self.votes += self.popularity // 10
         self.popularity += self.popularity // 10
         other.popularity -= other.popularity // 10
-        if other.popularity < 0:
-            other.popularity = 0
 
     def choose(self, other):
         return self.speech
@@ -105,6 +105,7 @@ class Game:
     >>> print(g.winner())
     None
     """
+
     def __init__(self, player1, player2):
         self.p1 = player1
         self.p2 = player2
@@ -112,9 +113,10 @@ class Game:
 
     def play(self):
         while not self.game_over():
+            """*** YOUR CODE HERE ***"""
             self.p1.choose(self.p2)(self.p2)
             self.turn += 1
-            if (self.game_over()):
+            if self.game_over():
                 return self.winner()
             self.p2.choose(self.p1)(self.p1)
             self.turn += 1
@@ -124,16 +126,19 @@ class Game:
         return max(self.p1.votes, self.p2.votes) >= 50 or self.turn >= 10
 
     def winner(self):
-        if self.p1.votes >= 50:
-            return self.p1
-        elif self.p2.votes >= 50:
-            return self.p2
-        elif self.p1.votes > self.p2.votes:
-            return self.p1
-        elif self.p1.votes < self.p2.votes:
-            return self.p2
-        elif self.p1.votes == self.p2.votes:
-            return
+        """*** YOUR CODE HERE ***"""
+        if self.turn == 10:
+            if self.p1.votes > self.p2.votes:
+                return self.p1
+            elif self.p1.votes < self.p2.votes:
+                return self.p2
+            else:
+                return None
+        else:
+            if self.p1.votes >= 50:
+                return self.p1
+            elif self.p2.votes >= 50:
+                return self.p2
 
 
 ### Phase 3: New Players
@@ -155,11 +160,14 @@ class AggressivePlayer(Player):
     >>> p2.choose(p1) == p2.speech
     True
     """
+
     def choose(self, other):
+        """*** YOUR CODE HERE ***"""
         if self.popularity <= other.popularity:
             return self.debate
         else:
             return self.speech
+
 
 class CautiousPlayer(Player):
     """
@@ -175,7 +183,9 @@ class CautiousPlayer(Player):
     >>> p2.choose(p1) == p2.speech
     True
     """
+
     def choose(self, other):
+        """*** YOUR CODE HERE ***"""
         if self.popularity == 0:
             return self.debate
         else:
@@ -244,18 +254,27 @@ def add_d_leaves(t, v):
           10
         10
     """
-    def traverse(t, v, d):
-        for br in t.branches:
-            traverse(br, v, d+1)
-        new_branch = t.branches
-        for i in range(d):
-            new_branch.append(Tree(v))
-        t.branches = new_branch
-    return traverse(t, v, 0)
+    """*** YOUR CODE HERE ***"""
+
+    def add_leaves_with_depth(t, v, d):
+        temp_d = d
+        if t.is_leaf():
+            while temp_d != 0:
+                t.branches.append(Tree(v))
+                temp_d -= 1
+            return
+        else:
+            for b in t.branches:
+                add_leaves_with_depth(b, v, d + 1)
+            while temp_d != 0:
+                t.branches.append(Tree(v))
+                temp_d -= 1
+
+    return add_leaves_with_depth(t, v, 0)
 
 
 def level_mutation_link(t, funcs):
-	"""Mutates t using the functions in the linked list funcs.
+    """Mutates t using the functions in the linked list funcs.
 
 	>>> t = Tree(1, [Tree(2, [Tree(3)])])
 	>>> funcs = Link(lambda x: x + 1, Link(lambda y: y * 5, Link(lambda z: z ** 2)))
@@ -271,16 +290,16 @@ def level_mutation_link(t, funcs):
 	>>> t3    # Level 0: 1+1=2; Level 1: 2*5=10; no further levels, so apply remaining z ** 2: 10**2=100
 	Tree(2, [Tree(100)])
 	"""
-	if funcs is Link.empty:
-		return
-	t.label = funcs.first(t.label)
-	remaining = funcs.rest
-	if t.is_leaf() and remaining is not Link.empty:
-		while remaining is not Link.empty:
-			t.label = remaining.first(t.label)
-			remaining = remaining.rest
-	for b in t.branches:
-		level_mutation_link(b, funcs.rest)
+    """*** YOUR CODE HERE ***"""
+    t.label = funcs.first(t.label)
+    temp = funcs.rest
+    if t.is_leaf():
+        while temp:
+            t.label = temp.first(t.label)
+            temp = temp.rest
+    else:
+        for b in t.branches:
+            level_mutation_link(b, temp)
 
 
 def store_digits(n):
@@ -300,13 +319,31 @@ def store_digits(n):
     >>> cleaned = re.sub(r"#.*\\n", '', re.sub(r'"{3}[\s\S]*?"{3}', '', inspect.getsource(store_digits)))
     >>> print("Do not use str or reversed!") if any([r in cleaned for r in ["str", "reversed"]]) else None
     """
-    result = Link.empty
-    while n // 10 != 0:
-        digit = n % 10
-        result = Link(digit, result)
-        n = n // 10
-    result = Link(n, result)
-    return result
+    """*** YOUR CODE HERE ***"""
+    def get_highest_digit(num):
+        while num >= 10:
+            num //= 10
+        return num
+
+    def remove_highest_digit(num):
+        power_of_10 = 1
+        while num // power_of_10 >= 10:
+            power_of_10 *= 10
+        return num % power_of_10
+
+    def pass_link(origin, now_link, n):
+        if n < 10:
+            now_link.rest = Link(n)
+            return origin
+        else:
+            now_link.rest = Link(get_highest_digit(n))
+            return pass_link(origin, now_link.rest, remove_highest_digit(n))
+
+    now = Link(get_highest_digit(n))
+    if n < 10:
+        return now
+    else:
+        return pass_link(now, now, remove_highest_digit(n))
 
 def deep_map_mut(func, lnk):
     """Mutates a deep link lnk by replacing each item found with the
@@ -327,13 +364,16 @@ def deep_map_mut(func, lnk):
     >>> print(link1)
     <9 <16> 25 36>
     """
-    if lnk is Link.empty:
-        return
+    """*** YOUR CODE HERE ***"""
     if isinstance(lnk.first, Link):
         deep_map_mut(func, lnk.first)
-    if isinstance(lnk.first, int):
+    else:
         lnk.first = func(lnk.first)
-    deep_map_mut(func, lnk.rest)
+    if lnk.rest:
+        deep_map_mut(func, lnk.rest)
+    else:
+        return
+
 
 def crispr_gene_insertion(lnk_of_genes, insert):
     """Takes a linked list of genes and mutates the genes with the INSERT codon added the correct number of times.
@@ -367,7 +407,7 @@ def crispr_gene_insertion(lnk_of_genes, insert):
         if current.first == "AUG":
             # Create new LinkedList
             newLink = Link(insert, current.rest)
-            for i in range(depth-1):
+            for i in range(depth - 1):
                 newLink = Link(insert, newLink)
             # Form new connections
             current.rest = newLink
@@ -375,6 +415,7 @@ def crispr_gene_insertion(lnk_of_genes, insert):
         lnk_of_genes = lnk_of_genes.rest
         # Increase depth
         depth += 1
+
 
 def transcribe(dna):
     """Takes a string of DNA and returns a Python list with the RNA codons.
@@ -391,8 +432,8 @@ def transcribe(dna):
         for _ in range(3):
             string += dict[dna[j]]
             j += 1
-        result.append(string) 
-    return result 
+        result.append(string)
+    return result
 
 
 class Tree:
@@ -405,6 +446,7 @@ class Tree:
     >>> t.branches[1].is_leaf()
     True
     """
+
     def __init__(self, label, branches=[]):
         for b in branches:
             assert isinstance(b, Tree)
@@ -427,6 +469,7 @@ class Tree:
             for b in t.branches:
                 tree_str += print_tree(b, indent + 1)
             return tree_str
+
         return print_tree(self).rstrip()
 
 
@@ -470,4 +513,3 @@ class Link:
             string += str(self.first) + ' '
             self = self.rest
         return string + str(self.first) + '>'
-
