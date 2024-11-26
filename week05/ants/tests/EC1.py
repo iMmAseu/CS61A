@@ -60,6 +60,10 @@ test = {
           >>> bee.place.name
           'tunnel_0_4'
           >>> slow.action(gamestate) # slow throws syrup again. slow's effects will take place for 5 more turns
+          >>> bee.left_time
+          5
+          >>> gamestate.time
+          2
           >>> for _ in range(5):
           ...    gamestate.time += 1
           ...    bee.action(gamestate)
