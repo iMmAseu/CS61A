@@ -37,11 +37,24 @@ def do_define_form(expressions, env):
         validate_form(expressions, 2, 2) # Checks that expressions is a list of length exactly 2
         # BEGIN PROBLEM 4
         "*** YOUR CODE HERE ***"
+        symbol = expressions.first
+        if isinstance(expressions.rest.first, int):
+            value = expressions.rest.first
+        else:
+            value = scheme_eval(expressions.rest.first, env)
+        env.define(symbol, value)
+        return symbol
         # END PROBLEM 4
     elif isinstance(signature, Pair) and scheme_symbolp(signature.first):
         # defining a named procedure e.g. (define (f x y) (+ x y))
         # BEGIN PROBLEM 10
         "*** YOUR CODE HERE ***"
+        func_symbol = signature.first
+        val_symbol = signature.rest
+        exp = expressions.rest
+        new_exp = Pair(val_symbol, exp)
+        env.define(func_symbol, do_lambda_form(new_exp, env))
+        return func_symbol
         # END PROBLEM 10
     else:
         bad_signature = signature.first if isinstance(signature, Pair) else signature
@@ -57,6 +70,7 @@ def do_quote_form(expressions, env):
     validate_form(expressions, 1, 1)
     # BEGIN PROBLEM 5
     "*** YOUR CODE HERE ***"
+    return expressions.first
     # END PROBLEM 5
 
 def do_begin_form(expressions, env):
@@ -83,6 +97,7 @@ def do_lambda_form(expressions, env):
     validate_formals(formals)
     # BEGIN PROBLEM 7
     "*** YOUR CODE HERE ***"
+    return LambdaProcedure(formals, expressions.rest, env)
     # END PROBLEM 7
 
 def do_if_form(expressions, env):
@@ -96,9 +111,9 @@ def do_if_form(expressions, env):
     """
     validate_form(expressions, 2, 3)
     if is_scheme_true(scheme_eval(expressions.first, env)):
-        return scheme_eval(expressions.rest.first, env)
+        return scheme_eval(expressions.rest.first, env, True)
     elif len(expressions) == 3:
-        return scheme_eval(expressions.rest.rest.first, env)
+        return scheme_eval(expressions.rest.rest.first, env, True)
 
 def do_and_form(expressions, env):
     """Evaluate a (short-circuited) and form.
@@ -116,6 +131,18 @@ def do_and_form(expressions, env):
     """
     # BEGIN PROBLEM 12
     "*** YOUR CODE HERE ***"
+    if expressions == nil:
+        return True
+    now = expressions
+    while now.rest != nil:
+        if is_scheme_false(scheme_eval(now.first, env)):
+            return False
+        now = now.rest
+    v = scheme_eval(now.first, env, True)
+    if is_scheme_true(v):
+        return v
+    else:
+        return False
     # END PROBLEM 12
 
 def do_or_form(expressions, env):
@@ -134,6 +161,14 @@ def do_or_form(expressions, env):
     """
     # BEGIN PROBLEM 12
     "*** YOUR CODE HERE ***"
+    if expressions == nil:
+        return False
+    now = expressions
+    while now.rest != nil:
+        if is_scheme_true(scheme_eval(now.first, env)):
+            return scheme_eval(now.first, env)
+        now = now.rest
+    return scheme_eval(now.first, env, True)
     # END PROBLEM 12
 
 def do_cond_form(expressions, env):
@@ -154,6 +189,10 @@ def do_cond_form(expressions, env):
         if is_scheme_true(test):
             # BEGIN PROBLEM 13
             "*** YOUR CODE HERE ***"
+            if clause.rest == nil:
+                return test
+            else:
+                return eval_all(clause.rest, env)
             # END PROBLEM 13
         expressions = expressions.rest
 
@@ -178,9 +217,15 @@ def make_let_frame(bindings, env):
     names = vals = nil
     # BEGIN PROBLEM 14
     "*** YOUR CODE HERE ***"
+    now = bindings
+    while now != nil:
+        validate_form(now.first, 2, 2)
+        names = Pair(now.first.first, names)
+        vals = Pair(eval_all(now.first.rest, env), vals)
+        now = now.rest
+    validate_formals(names)
     # END PROBLEM 14
     return env.make_child_frame(names, vals)
-
 
 
 def do_quasiquote_form(expressions, env):
@@ -208,6 +253,9 @@ def do_quasiquote_form(expressions, env):
 def do_unquote(expressions, env):
     raise SchemeError('unquote outside of quasiquote')
 
+def do_eval_form(expressions, env):
+    return scheme_eval(scheme_eval(expressions.first, env), env)
+
 
 #################
 # Dynamic Scope #
@@ -220,6 +268,7 @@ def do_mu_form(expressions, env):
     validate_formals(formals)
     # BEGIN PROBLEM 11
     "*** YOUR CODE HERE ***"
+    return MuProcedure(formals, expressions.rest)
     # END PROBLEM 11
 
 
@@ -237,4 +286,5 @@ SPECIAL_FORMS = {
     'quasiquote': do_quasiquote_form,
     'unquote': do_unquote,
     'mu': do_mu_form,
+    'eval': do_eval_form,
 }

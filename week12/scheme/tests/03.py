@@ -6,24 +6,41 @@ test = {
       'cases': [
         {
           'code': r"""
+          >>> expr = read_line('(print-then-return 6 print)')
+          >>> expr
+          Pair('print-then-return', Pair(6, Pair('print', nil)))
+          >>> expr.first
+          'print-then-return'
+          >>> expr = read_line('((print-then-return 6 print) (print-then-return 1 "a"))')
+          >>> expr
+          Pair(Pair('print-then-return', Pair(6, Pair('print', nil))), Pair(Pair('print-then-return', Pair(1, Pair('"a"', nil))), nil))
+          >>> expr.first
+          Pair('print-then-return', Pair(6, Pair('print', nil)))
+          >>> expr.rest
+          Pair(Pair('print-then-return', Pair(1, Pair('"a"', nil))), nil)
           >>> expr = read_line('(+ 2 2)')
           >>> scheme_eval(expr, create_global_frame()) # Type SchemeError if you think this errors
-          46beb7deeeb5e9af1c8d785b12558317
-          # locked
+          4
           >>> scheme_eval(Pair('+', Pair(2, Pair(2, nil))), create_global_frame()) # Type SchemeError if you think this errors
-          46beb7deeeb5e9af1c8d785b12558317
-          # locked
+          4
           >>> expr = read_line('(+ (+ 2 2) (+ 1 3) (* 1 4))')
           >>> scheme_eval(expr, create_global_frame()) # Type SchemeError if you think this errors
-          4c5d1a42692bacbca88ab48bbcf75c52
-          # locked
+          12
+          >>> expr = read_line('(+ (+ 2 2) (+ 1 3))')
+          >>> expr
+          Pair('+', Pair(Pair('+', Pair(2, Pair(2, nil))), Pair(Pair('+', Pair(1, Pair(3, nil))), nil)))
+          >>> expr.first
+          '+'
+          >>> expr.rest
+          Pair(Pair('+', Pair(2, Pair(2, nil))), Pair(Pair('+', Pair(1, Pair(3, nil))), nil))
+          >>> scheme_eval(expr, create_global_frame()) # Type SchemeError if you think this errors
+          8
           >>> expr = read_line('(yolo)')
           >>> scheme_eval(expr, create_global_frame()) # Type SchemeError if you think this errors
-          ec908af60f03727428c7ee3f22ec3cd8
-          # locked
+          SchemeError
           """,
           'hidden': False,
-          'locked': True,
+          'locked': False,
           'multiline': False
         }
       ],
@@ -40,14 +57,12 @@ test = {
         {
           'code': r"""
           scm> (* (+ 3 2) (+ 1 7)) ; Type SchemeError if you think this errors
-          a692eb3d6b9f6889d113635424465221
-          # locked
+          40
           scm> (1 2) ; Type SchemeError if you think this errors
-          ec908af60f03727428c7ee3f22ec3cd8
-          # locked
+          SchemeError
           """,
           'hidden': False,
-          'locked': True,
+          'locked': False,
           'multiline': False
         },
         {

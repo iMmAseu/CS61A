@@ -5,12 +5,15 @@ from scheme_utils import *
 from ucb import main, trace
 
 import scheme_forms
+import pdb
+
 
 ##############
 # Eval/Apply #
 ##############
 
-def scheme_eval(expr, env, _=None): # Optional third argument is ignored
+
+def scheme_eval(expr, env, _=None):  # Optional third argument is ignored
     """Evaluate Scheme expression EXPR in Frame ENV.
 
     >>> expr = read_line('(+ 2 2)')
@@ -19,6 +22,10 @@ def scheme_eval(expr, env, _=None): # Optional third argument is ignored
     >>> scheme_eval(expr, create_global_frame())
     4
     """
+
+    def scheme_eval_as_same(new_expr):
+        return scheme_eval(new_expr, env, _)
+
     # Evaluate atoms
     if scheme_symbolp(expr):
         return env.lookup(expr)
@@ -34,34 +41,51 @@ def scheme_eval(expr, env, _=None): # Optional third argument is ignored
     else:
         # BEGIN PROBLEM 3
         "*** YOUR CODE HERE ***"
+        op = scheme_eval(first, env)
+        operands = rest.map(scheme_eval_as_same)
+        return scheme_apply(op, operands, env)
         # END PROBLEM 3
+
 
 def scheme_apply(procedure, args, env):
     """Apply Scheme PROCEDURE to argument values ARGS (a Scheme list) in
     Frame ENV, the current environment."""
     validate_procedure(procedure)
     if not isinstance(env, Frame):
-       assert False, "Not a Frame: {}".format(env)
+        assert False, "Not a Frame: {}".format(env)
     if isinstance(procedure, BuiltinProcedure):
         # BEGIN PROBLEM 2
         "*** YOUR CODE HERE ***"
+        now = args
+        python_list = []
+        while now is not nil:
+            python_list.append(now.first)
+            now = now.rest
+        if procedure.need_env:
+            python_list.append(env)
         # END PROBLEM 2
         try:
             # BEGIN PROBLEM 2
             "*** YOUR CODE HERE ***"
+            return procedure.py_func(*python_list)
             # END PROBLEM 2
         except TypeError as err:
             raise SchemeError('incorrect number of arguments: {0}'.format(procedure))
     elif isinstance(procedure, LambdaProcedure):
         # BEGIN PROBLEM 9
         "*** YOUR CODE HERE ***"
+        new_frame = procedure.env.make_child_frame(procedure.formals, args)
+        return eval_all(procedure.body, new_frame)
         # END PROBLEM 9
     elif isinstance(procedure, MuProcedure):
         # BEGIN PROBLEM 11
         "*** YOUR CODE HERE ***"
+        new_frame = env.make_child_frame(procedure.formals, args)
+        return eval_all(procedure.body, new_frame)
         # END PROBLEM 11
     else:
         assert False, "Unexpected procedure: {}".format(procedure)
+
 
 def eval_all(expressions, env):
     """Evaluate each expression in the Scheme list EXPRESSIONS in
@@ -79,13 +103,34 @@ def eval_all(expressions, env):
     2
     """
     # BEGIN PROBLEM 6
-    return scheme_eval(expressions.first, env) # replace this with lines of your own code
+    # 进行尾递归优化之后会有一个pro14的测试用例跑不通，说明有的时候let也不是全是尾递归的
+    if expressions == nil:
+        return
+    elif expressions.rest == nil:
+        return scheme_eval(expressions.first, env)
+        # return scheme_eval(expressions.first, env， True)
+    else:
+        scheme_eval(expressions.first, env)
+        return eval_all(expressions.rest, env)
+    # replace this with lines of your own code
     # END PROBLEM 6
 
 
 ################################
 # Extra Credit: Tail Recursion #
 ################################
+# Thunk 类实例表示它的类成员变量 expr 需要在类成员变量 env 中被计算。
+#
+# 当 optimized_eval 接受非原子的 tail-call 表达式，它立即返回 Thunk 实例，而不是继续去递归
+# scheme_eval(expr, env) 计算表达式，而是先返回，再计算 Thunk 实例中的 expr，相当于回收之前的递归深度/空间。
+#
+# 否则的话，它应当反复调用 original_scheme_eval，直到它返回值不是 Thunk 类型。
+#
+# 遵循尾递归调用判断规则，设置 optimize_tail_calls 的第三个参数 tail 为 True。
+#
+# lambda, cond, let, begin 涉及 eval_all。
+# if 涉及 do_if_form。
+# and, or 分别是 do_and_form, do_or_form。
 
 class Unevaluated:
     """An expression and an environment in which it is to be evaluated."""
@@ -94,6 +139,7 @@ class Unevaluated:
         """Expression EXPR to be evaluated in Frame ENV."""
         self.expr = expr
         self.env = env
+
 
 def complete_apply(procedure, args, env):
     """Apply procedure to args in env; ensure the result is not an Unevaluated."""
@@ -104,8 +150,10 @@ def complete_apply(procedure, args, env):
     else:
         return val
 
+
 def optimize_tail_calls(unoptimized_scheme_eval):
     """Return a properly tail recursive version of an eval function."""
+
     def optimized_eval(expr, env, tail=False):
         """Evaluate Scheme expression EXPR in Frame ENV. If TAIL,
         return an Unevaluated containing an expression for further evaluation.
@@ -116,24 +164,15 @@ def optimize_tail_calls(unoptimized_scheme_eval):
         result = Unevaluated(expr, env)
         # BEGIN OPTIONAL PROBLEM 1
         "*** YOUR CODE HERE ***"
+        while isinstance(result, Unevaluated):
+            result = unoptimized_scheme_eval(result.expr, result.env)
+        return result
         # END OPTIONAL PROBLEM 1
+
     return optimized_eval
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ################################################################
 # Uncomment the following line to apply tail call optimization #
 ################################################################
 
-# scheme_eval = optimize_tail_calls(scheme_eval)
+scheme_eval = optimize_tail_calls(scheme_eval)
